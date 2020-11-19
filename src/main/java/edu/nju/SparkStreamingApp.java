@@ -1,7 +1,7 @@
-import config.SparkConfig;
+package edu.nju;
+
+import edu.nju.config.SparkConfig;
 import org.apache.spark.SparkConf;
-import org.apache.spark.SparkContext;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -18,12 +18,11 @@ import java.util.Arrays;
  */
 public class SparkStreamingApp {
 
-    SparkConf conf = new SparkConf().setAppName(SparkConfig.APP_NAME).setMaster(SparkConfig.MASTER);
 
     public static void main(String[] args) {
-        SparkStreamingApp app = new SparkStreamingApp();
+        SparkConf conf = new SparkConf().setAppName(SparkConfig.APP_NAME).setMaster(SparkConfig.MASTER);
 
-        try (JavaStreamingContext jssc = new JavaStreamingContext(app.conf, Durations.seconds(1));){
+        try (JavaStreamingContext jssc = new JavaStreamingContext(conf, Durations.seconds(1));){
 
             JavaReceiverInputDStream<String> lines = jssc.socketTextStream("localhost", 9999);
 

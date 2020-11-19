@@ -1,4 +1,4 @@
-package config;
+package edu.nju.config;
 
 /**
  * @author xuechenyang(morsuning @ gmail.com)
