@@ -2,6 +2,7 @@ package edu.nju;
 
 import edu.nju.config.SparkConfig;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
@@ -19,10 +20,10 @@ public class SparkStreamingApp {
 
 
     public static void main(String[] args) {
-        SparkConf conf = new SparkConf().setAppName(SparkConfig.APP_NAME).setMaster(SparkConfig.MASTER);
+        JavaSparkContext sc = new JavaSparkContext(SparkConfig.MASTER,SparkConfig.APP_NAME);
+        sc.setLogLevel("WARN");
 
-        try (JavaStreamingContext jssc = new JavaStreamingContext(conf, Durations.seconds(1))){
-
+        try (JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.seconds(1))){
             JavaReceiverInputDStream<String> lines = jssc.socketTextStream("localhost", 9999);
 
             JavaDStream<String> words = lines.flatMap(x -> Arrays.asList(x.split(" ")).iterator());
