@@ -2,9 +2,9 @@ package edu.nju;
 
 import edu.nju.config.ConfigurationManager;
 import edu.nju.config.Constants;
+import edu.nju.utils.StringDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Durations;
