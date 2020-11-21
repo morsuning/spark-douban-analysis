@@ -1,6 +1,7 @@
 package edu.nju;
 
-import edu.nju.config.SparkConfig;
+import edu.nju.config.ConfigurationManager;
+import edu.nju.config.Constants;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -27,28 +28,37 @@ public class SparkStreamingApp {
 
     private static final Pattern SPACE = Pattern.compile(" ");
 
-    SparkConf sparkConf = new SparkConf().setAppName(SparkConfig.APP_NAME);
+    SparkConf sparkConf = new SparkConf().setAppName(Constants.APP_NAME);
     JavaSparkContext sc = new JavaSparkContext(sparkConf);
-
-    String brokers = "node1:9092";
-    String groupId = "0";
-    String topics = "topic1";
 
     public void start() {
         sc.setLogLevel("WARN");
-        try (JavaStreamingContext jssc = new JavaStreamingContext(this.sc, Durations.seconds(1))) {
-            Set<String> topicsSet = new HashSet<>(Arrays.asList(topics.split(",")));
+
+        try (JavaStreamingContext jssc = new JavaStreamingContext(this.sc, Durations.seconds(10))) {
+
+            jssc.checkpoint("hdfs:///spark/streaming_checkpoint");
+
+
             Map<String, Object> kafkaParams = new HashMap<>(4);
-            kafkaParams.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
-            kafkaParams.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+            kafkaParams.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ConfigurationManager.getProperty(Constants.KAFKA_BOOTSTRAP_SERVERS));
+            kafkaParams.put(ConsumerConfig.GROUP_ID_CONFIG, ConfigurationManager.getProperty(Constants.GROUP_ID));
             kafkaParams.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
             kafkaParams.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 
-            JavaInputDStream<ConsumerRecord<String, String>> messages = KafkaUtils.createDirectStream(jssc,
+            //指定从latest(最新,其他版本的是largest这里不行)还是smallest(最早)处开始读取数据
+//            kafkaParams.put("auto.offset.reset", "latest");
+            //如果true,consumer定期地往zookeeper写入每个分区的offset
+//            kafkaParams.put("enable.auto.commit", false);
+
+            Set<String> topicsSet = new HashSet<>(
+                    Arrays.asList(ConfigurationManager.getProperty(Constants.KAFKA_TOPICS).split(",")));
+
+            JavaInputDStream<ConsumerRecord<String, String>> stream = KafkaUtils.createDirectStream(
+                    jssc,
                     LocationStrategies.PreferConsistent(),
                     ConsumerStrategies.Subscribe(topicsSet, kafkaParams));
 
-            JavaDStream<String> lines = messages.map(ConsumerRecord::value);
+            JavaDStream<String> lines = stream.map(ConsumerRecord::value);
 
             lines.print();
             JavaDStream<String> words = lines.flatMap(x -> Arrays.asList(SPACE.split(x)).iterator());
