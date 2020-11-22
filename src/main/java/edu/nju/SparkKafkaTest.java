@@ -113,7 +113,7 @@ public class SparkKafkaTest {
     }
 
     public static void main(String[] args) {
-        SparkStreamingApp sparkStreamingApp = new SparkStreamingApp();
-        sparkStreamingApp.start();
+        SparkKafkaTest sparkKafkaTest = new SparkKafkaTest();
+        sparkKafkaTest.start();
     }
 }
