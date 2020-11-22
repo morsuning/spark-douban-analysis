@@ -78,23 +78,23 @@ public class SparkKafkaTest {
                 }
             });
 
-            JavaDStream<String> data2 = stream.map(new Function<ConsumerRecord<String, String>, String>() {
-                @Override
-                public String call(ConsumerRecord<String, String> stringConsumerRecord) throws Exception {
-                    String jsonData = stringConsumerRecord.value();
-                    String value = "";
-                    JSONObject jsonObject = JSON.parseObject(jsonData);
-                    for (String key : jsonObject.keySet()) {
-                        if ("seen".equals(key)) {
-                            value = jsonObject.getString(key);
-                        }
-                    }
-                    return value;
-                }
-            });
+//            JavaDStream<String> data2 = stream.map(new Function<ConsumerRecord<String, String>, String>() {
+//                @Override
+//                public String call(ConsumerRecord<String, String> stringConsumerRecord) throws Exception {
+//                    String jsonData = stringConsumerRecord.value();
+//                    String value = "";
+//                    JSONObject jsonObject = JSON.parseObject(jsonData);
+//                    for (String key : jsonObject.keySet()) {
+//                        if ("seen".equals(key)) {
+//                            value = jsonObject.getString(key);
+//                        }
+//                    }
+//                    return value;
+//                }
+//            });
 
             data1.print();
-            data2.print();
+//            data2.print();
 
             jssc.start();
             jssc.awaitTermination();
