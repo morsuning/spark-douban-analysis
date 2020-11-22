@@ -68,7 +68,7 @@ public class SparkKafkaTest {
             JavaDStream<String> data1 = stream.map((Function<ConsumerRecord<String, String>, String>) stringConsumerRecord -> {
                 String jsonData = stringConsumerRecord.value();
                 String value = "";
-                JSONObject jsonObject = new JSONObject().getJSONObject(jsonData);
+                JSONObject jsonObject = JSON.parseObject(jsonData);
                 for (String key : jsonObject.keySet()) {
                     if ("title".equals(key)) {
                         value = jsonObject.getString(key);
