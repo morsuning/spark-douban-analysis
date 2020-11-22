@@ -61,9 +61,9 @@ public class SparkKafkaTest {
                     LocationStrategies.PreferConsistent(),
                     ConsumerStrategies.Subscribe(topicsSet, kafkaParams));
 
-            JavaDStream<String> lines = stream.map(ConsumerRecord::value);
-
-            lines.print();
+//            JavaDStream<String> lines = stream.map(ConsumerRecord::value);
+//
+//            lines.print();
 
             JavaDStream<String> data1 = stream.map(new Function<ConsumerRecord<String, String>, String>() {
                 @Override
