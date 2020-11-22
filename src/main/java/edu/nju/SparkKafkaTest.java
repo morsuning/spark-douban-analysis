@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  * @author xuechenyang(morsuning @ gmail.com)
  * @date 2020/11/21 14:03
  */
-public class SparkKafkaTestApp {
+public class SparkKafkaTest {
 
 
     private static final Pattern SPACE = Pattern.compile(" ");
@@ -95,8 +95,6 @@ public class SparkKafkaTestApp {
 
             data1.print();
             data2.print();
-
-
 
             jssc.start();
             jssc.awaitTermination();

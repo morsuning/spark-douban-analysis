@@ -74,11 +74,11 @@ public class SparkExample {
 
         // 统计次数
         long errorRDDCount = errorRDD.count();
-        System.out.println("errorRDD 的总数为: "+errorRDDCount);
+        System.out.println("errorRDD 的总数为: " + errorRDDCount);
 
         // 从中取固定数目数据
-        for (String rddLine:errorRDD.take(10)){
-            System.out.println("errorRDD的数据是:"+rddLine);
+        for (String rddLine : errorRDD.take(10)) {
+            System.out.println("errorRDD的数据是:" + rddLine);
         }
 
         // 获得全部数据(能在单台服务器中放下)
@@ -87,11 +87,13 @@ public class SparkExample {
         // 可以传入如下的具体类代替上面所示的匿名内部类
 
         //定义具体类
-        class ContainsErrorDev implements Function<String,Boolean>{
+        class ContainsErrorDev implements Function<String, Boolean> {
             private String query;
-            public ContainsErrorDev(String query){
+
+            public ContainsErrorDev(String query) {
                 this.query = query;
             }
+
             public Boolean call(String v1) {
                 return v1.contains(query);
             }
@@ -113,12 +115,12 @@ public class SparkExample {
                 return v1 * v1;
             }
         });
-        System.out.println(StringUtils.join(result.collect(),","));
+        System.out.println(StringUtils.join(result.collect(), ","));
 
         // 对每个输入元素生成多个输出元素。实现该功能的操作叫作 flatMap()
         JavaRDD<String> lines2 = sparkContext.parallelize(Arrays.asList("hello world", "hi"));
 
-        JavaRDD<String> flatMapResult  = lines2.flatMap(new FlatMapFunction<String, String>() {
+        JavaRDD<String> flatMapResult = lines2.flatMap(new FlatMapFunction<String, String>() {
             @Override
             public Iterator<String> call(String s) throws Exception {
                 return Arrays.asList(PATTERN.split(s)).iterator();
@@ -164,7 +166,7 @@ public class SparkExample {
 
         // 行动操作
         // reduce 接收一个函数作为参数,操作两个 RDD 的元素,并且返回一个相同类型的新元素
-        JavaRDD<Integer> rdd = sparkContext.parallelize(Arrays.asList(1,2,3,4,5,6,7,8,9,10));
+        JavaRDD<Integer> rdd = sparkContext.parallelize(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
         Integer sum = rdd.reduce(
                 new Function2<Integer, Integer, Integer>() {
                     @Override
@@ -207,7 +209,7 @@ public class SparkExample {
                 }
             };
 
-            Function2<RddAvg,RddAvg,RddAvg> rddAvgFunction2 = new Function2<RddAvg, RddAvg, RddAvg>() {
+            Function2<RddAvg, RddAvg, RddAvg> rddAvgFunction2 = new Function2<RddAvg, RddAvg, RddAvg>() {
                 @Override
                 public RddAvg call(RddAvg v1, RddAvg v2) {
                     v1.total += v2.total;
@@ -223,9 +225,6 @@ public class SparkExample {
                 System.out.println(result.avg());
             }
         }
-
-
-
 
 
     }
