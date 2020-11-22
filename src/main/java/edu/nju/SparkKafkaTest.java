@@ -70,7 +70,7 @@ public class SparkKafkaTest {
                 public String call(ConsumerRecord<String, String> stringConsumerRecord) throws Exception {
                     String jsonData = stringConsumerRecord.value();
                     String value = "";
-                    JSONObject jsonObject = JSON.parseObject(jsonData);
+                    JSONObject jsonObject = new JSONObject().getJSONObject(jsonData);
                     for (String key : jsonObject.keySet()) {
                         if ("title".equals(key)) {
                             value = jsonObject.getString(key);
