@@ -39,7 +39,7 @@ public class SparkStreamingApp {
 
             // 剧名
             JavaDStream<String> title = stream
-                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.TITLE));
+                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, "title"));
 
             // 想看，在看，看过总数
             JavaDStream<Integer> count_awaiting_warching_seen = stream
