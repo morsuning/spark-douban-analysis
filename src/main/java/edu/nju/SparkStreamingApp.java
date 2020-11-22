@@ -7,6 +7,7 @@ import edu.nju.config.KafkaConf;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -39,7 +40,20 @@ public class SparkStreamingApp {
 
             // 剧名
             JavaDStream<String> title = stream
-                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, "title"));
+                    .map(new Function<ConsumerRecord<String, String>, String>() {
+                        @Override
+                        public String call(ConsumerRecord<String, String> consumerRecord) {
+                            String jsonData = consumerRecord.value();
+                            String value = "";
+                            JSONObject jsonObject = JSON.parseObject(jsonData);
+                            for (String key : jsonObject.keySet()) {
+                                if ("title".equals(key)) {
+                                    value = jsonObject.getString(key);
+                                }
+                            }
+                            return value;
+                        }
+                    });
 
             // 想看，在看，看过总数
             JavaDStream<Integer> count_awaiting_warching_seen = stream
