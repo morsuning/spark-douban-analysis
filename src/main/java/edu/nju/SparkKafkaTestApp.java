@@ -1,5 +1,7 @@
 package edu.nju;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import edu.nju.config.ConfigurationManager;
 import edu.nju.config.Constants;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -7,6 +9,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -60,11 +63,39 @@ public class SparkKafkaTestApp {
                     LocationStrategies.PreferConsistent(),
                     ConsumerStrategies.Subscribe(topicsSet, kafkaParams));
 
-            JavaDStream<String> key = stream.map(ConsumerRecord::key);
-            JavaDStream<String> value = stream.map(ConsumerRecord::value);
+            JavaDStream<String> data1 = stream.map(new Function<ConsumerRecord<String, String>, String>() {
+                @Override
+                public String call(ConsumerRecord<String, String> stringConsumerRecord) throws Exception {
+                    String jsonData = stringConsumerRecord.value();
+                    String value = "";
+                    JSONObject jsonObject = JSON.parseObject(jsonData);
+                    for (String key : jsonObject.keySet()) {
+                        if ("title".equals(key)) {
+                            value = jsonObject.getString(key);
+                        }
+                    }
+                    return value;
+                }
+            });
 
-            key.print();
-            value.print();
+            JavaDStream<String> data2 = stream.map(new Function<ConsumerRecord<String, String>, String>() {
+                @Override
+                public String call(ConsumerRecord<String, String> stringConsumerRecord) throws Exception {
+                    String jsonData = stringConsumerRecord.value();
+                    String value = "";
+                    JSONObject jsonObject = JSON.parseObject(jsonData);
+                    for (String key : jsonObject.keySet()) {
+                        if ("seen".equals(key)) {
+                            value = jsonObject.getString(key);
+                        }
+                    }
+                    return value;
+                }
+            });
+
+            data1.print();
+            data2.print();
+
 
 
             jssc.start();
