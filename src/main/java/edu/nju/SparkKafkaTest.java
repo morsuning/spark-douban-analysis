@@ -38,7 +38,6 @@ public class SparkKafkaTest {
 
         try (JavaStreamingContext jssc = new JavaStreamingContext(this.sc, Durations.seconds(10))) {
 
-            jssc.checkpoint("hdfs:///spark/streaming_checkpoint");
 
             Map<String, Object> kafkaParams = new HashMap<>(4);
             kafkaParams.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ConfigurationManager.getProperty(Constants.KAFKA_BOOTSTRAP_SERVERS));
@@ -61,6 +60,10 @@ public class SparkKafkaTest {
                     jssc,
                     LocationStrategies.PreferConsistent(),
                     ConsumerStrategies.Subscribe(topicsSet, kafkaParams));
+
+            JavaDStream<String> lines = stream.map(ConsumerRecord::value);
+
+            lines.print();
 
 //            JavaDStream<String> data1 = stream.map(new Function<ConsumerRecord<String, String>, String>() {
 //                @Override
