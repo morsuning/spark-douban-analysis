@@ -96,6 +96,7 @@ public class SparkExample {
                 return v1.contains(query);
             }
         }
+
         JavaRDD<String> errorRDD2 = inputRDD.filter(new ContainsErrorDev("Error"));
 
         // 写入结果

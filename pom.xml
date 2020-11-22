@@ -89,5 +89,11 @@
             <version>2.6.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-token-provider-kafka-0-10_2.12</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
     </dependencies>
 </project>
