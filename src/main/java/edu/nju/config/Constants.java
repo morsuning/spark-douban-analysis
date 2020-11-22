@@ -14,4 +14,27 @@ public interface Constants {
     String GROUP_ID = "group.id";
 
     String KAFKA_TOPICS = "kafka.topics";
+
+
+    String TITLE = "title";
+
+    String AWAITING = "awaiting";
+
+    String WATCHING = "watching";
+
+    String SEEN = "seen";
+
+    String SHORT_COMMENT_COUNT = "short_comment_count";
+
+    String SHORT_COMMENT_LIKE_COUNT = "short_comment_like_count";
+
+    String COMMENT_COUNT = "comment_count";
+
+    String COMMENT_REPLY_COUNT = "comment_reply_count";
+
+    String COMMENT_USEFULNESS_COUNT = "comment_usefulness_count";
+
+    String COMMENT_SHARE_COUNT = "comment_share_count";
+
+    String COMMENT_COLLECT_COUNT ="comment_collect_count";
 }
