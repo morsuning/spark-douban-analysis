@@ -65,6 +65,9 @@ public class SparkKafkaTest {
 //
 //            lines.print();
 
+            JavaDStream<String> data = stream.map((Function<ConsumerRecord<String, String>, String>) stringStringConsumerRecord -> stringStringConsumerRecord.value());
+            data.print();
+
             JavaDStream<String> data1 = stream.map((Function<ConsumerRecord<String, String>, String>) stringConsumerRecord -> {
                 String jsonData = stringConsumerRecord.value();
                 String value = "";
@@ -100,7 +103,6 @@ public class SparkKafkaTest {
             jssc.awaitTermination();
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
