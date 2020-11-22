@@ -40,7 +40,6 @@ public class SparkKafkaTest {
 
             jssc.checkpoint("hdfs:///spark/streaming_checkpoint");
 
-
             Map<String, Object> kafkaParams = new HashMap<>(4);
             kafkaParams.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ConfigurationManager.getProperty(Constants.KAFKA_BOOTSTRAP_SERVERS));
             kafkaParams.put(ConsumerConfig.GROUP_ID_CONFIG, ConfigurationManager.getProperty(Constants.GROUP_ID));
@@ -78,20 +77,20 @@ public class SparkKafkaTest {
                 }
             });
 
-//            JavaDStream<String> data2 = stream.map(new Function<ConsumerRecord<String, String>, String>() {
-//                @Override
-//                public String call(ConsumerRecord<String, String> stringConsumerRecord) throws Exception {
-//                    String jsonData = stringConsumerRecord.value();
-//                    String value = "";
-//                    JSONObject jsonObject = JSON.parseObject(jsonData);
-//                    for (String key : jsonObject.keySet()) {
-//                        if ("seen".equals(key)) {
-//                            value = jsonObject.getString(key);
-//                        }
-//                    }
-//                    return value;
-//                }
-//            });
+            JavaDStream<String> data2 = stream.map(new Function<ConsumerRecord<String, String>, String>() {
+                @Override
+                public String call(ConsumerRecord<String, String> stringConsumerRecord) throws Exception {
+                    String jsonData = stringConsumerRecord.value();
+                    String value = "";
+                    JSONObject jsonObject = JSON.parseObject(jsonData);
+                    for (String key : jsonObject.keySet()) {
+                        if ("seen".equals(key)) {
+                            value = jsonObject.getString(key);
+                        }
+                    }
+                    return value;
+                }
+            });
 
             data1.print();
 //            data2.print();

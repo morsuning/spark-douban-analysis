@@ -12,5 +12,6 @@ public interface Constants {
     String KAFKA_BOOTSTRAP_SERVERS = "bootstrap.servers";
 
     String GROUP_ID = "group.id";
+
     String KAFKA_TOPICS = "kafka.topics";
 }
