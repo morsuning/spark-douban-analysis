@@ -47,7 +47,7 @@ public class SparkStreamingApp {
                                  String value = "";
                                  JSONObject jsonObject = JSON.parseObject(jsonData);
                                  for (String key : jsonObject.keySet()) {
-                                     if (Constants.TITLE.equals(key)) {
+                                     if ("TITLE".equals(key)) {
                                          value = jsonObject.getString(key);
                                      }
                                  }
