@@ -28,16 +28,12 @@ import java.util.*;
  */
 public class SparkStreamingApp implements Serializable {
 
-    private final JavaSparkContext sc;
-
-    SparkStreamingApp() {
-        SparkConf sparkConf = new SparkConf().setAppName(Constants.APP_NAME);
-        this.sc = new JavaSparkContext(sparkConf);
-        sc.setLogLevel("WARN");
-    }
 
     public void start() {
-        try (JavaStreamingContext jssc = new JavaStreamingContext(this.sc, Durations.seconds(10))) {
+        SparkConf sparkConf = new SparkConf().setAppName(Constants.APP_NAME);
+        JavaSparkContext sc = new JavaSparkContext(sparkConf);
+        sc.setLogLevel("WARN");
+        try (JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.seconds(10))) {
 
             jssc.checkpoint("hdfs:///spark/streaming_checkpoint");
 
