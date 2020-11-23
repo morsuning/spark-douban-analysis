@@ -10,6 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -44,7 +45,22 @@ public class SparkKafkaTest {
                     LocationStrategies.PreferConsistent(),
                     ConsumerStrategies.Subscribe(KafkaConf.getTopicsSet(), KafkaConf.getKafkaParams()));
 
-            JavaDStream<String> lines = stream.map(ConsumerRecord::value);
+            JavaDStream<String> lines = stream.map(
+                    new Function<ConsumerRecord<String, String>, String>() {
+                        @Override
+                        public String call(ConsumerRecord<String, String> consumerRecord) {
+                            String jsonData = consumerRecord.value();
+                            String value = "";
+                            JSONObject jsonObject = JSON.parseObject(jsonData);
+                            for (String key : jsonObject.keySet()) {
+                                if ("TITLE".equals(key)) {
+                                    value = jsonObject.getString(key);
+                                }
+                            }
+                            return value;
+                        }
+                    }
+            );
 
             lines.print();
 
