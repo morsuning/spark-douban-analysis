@@ -24,13 +24,13 @@ import java.io.Serializable;
  */
 public class SparkStreamingApp implements Serializable {
 
-    SparkConf sparkConf = new SparkConf().setAppName(Constants.APP_NAME);
-    JavaSparkContext sc = new JavaSparkContext(sparkConf);
+    public static final SparkConf SPARK_CONF = new SparkConf().setAppName(Constants.APP_NAME);
+    public static final JavaSparkContext JAVA_SPARK_CONTEXT = new JavaSparkContext(SPARK_CONF);
 
     public void start() {
-        sc.setLogLevel("WARN");
+        JAVA_SPARK_CONTEXT.setLogLevel("WARN");
 
-        try (JavaStreamingContext jssc = new JavaStreamingContext(this.sc, Durations.seconds(10))) {
+        try (JavaStreamingContext jssc = new JavaStreamingContext(SparkStreamingApp.JAVA_SPARK_CONTEXT, Durations.seconds(10))) {
 
             jssc.checkpoint("hdfs:///spark/streaming_checkpoint");
 
@@ -61,7 +61,7 @@ public class SparkStreamingApp implements Serializable {
             title.print();
 
 //            // 想看，在看，看过总数
-//            JavaDStream<Integer> count_awaiting_warching_seen = stream
+//            JavaDStream<Integer> count_awaiting_watching_seen = stream
 //                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.AWAITING))
 //                    .map(Integer::parseInt)
 //                    .union(stream
