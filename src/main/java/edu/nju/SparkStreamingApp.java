@@ -28,13 +28,13 @@ import java.util.*;
  */
 public class SparkStreamingApp {
 
-    public static final SparkConf SPARK_CONF = new SparkConf().setAppName(Constants.APP_NAME).setMaster(Constants.MASTER);
-    public static final JavaSparkContext JAVA_SPARK_CONTEXT = new JavaSparkContext(SPARK_CONF);
+    private SparkConf SPARK_CONF = new SparkConf().setAppName(Constants.APP_NAME);
+    private JavaSparkContext JAVA_SPARK_CONTEXT = new JavaSparkContext(SPARK_CONF);
 
     public void start() {
         JAVA_SPARK_CONTEXT.setLogLevel("WARN");
 
-        try (JavaStreamingContext jssc = new JavaStreamingContext(SparkStreamingApp.JAVA_SPARK_CONTEXT, Durations.seconds(10))) {
+        try (JavaStreamingContext jssc = new JavaStreamingContext(this.JAVA_SPARK_CONTEXT, Durations.seconds(10))) {
 
             jssc.checkpoint("hdfs:///spark/streaming_checkpoint");
 
@@ -52,23 +52,14 @@ public class SparkStreamingApp {
                     LocationStrategies.PreferConsistent(),
                     // 可以有第三个参数 offset
                     ConsumerStrategies.Subscribe(topicSet, kafkaParams));
+
             // 剧名
-            JavaDStream<String> title = stream
-                    .map(new Function<ConsumerRecord<String, String>, String>() {
-                             @Override
-                             public String call(ConsumerRecord<String, String> consumerRecord){
-                                 String jsonData = consumerRecord.value();
-                                 String value = "";
-                                 JSONObject jsonObject = JSON.parseObject(jsonData);
-                                 for (String key : jsonObject.keySet()) {
-                                     if ("TITLE".equals(key)) {
-                                         value = jsonObject.getString(key);
-                                     }
-                                 }
-                                 return value;
-                             }
-                         }
-                    );
+            JavaDStream<String> title = stream.map(new Function<ConsumerRecord<String, String>, String>() {
+                @Override
+                public String call(ConsumerRecord<String, String> consumerRecord){
+                    return consumerRecord.value();
+                }
+            });
 
             title.print();
 
@@ -129,7 +120,6 @@ public class SparkStreamingApp {
 //            JavaDStream<Integer> comment_collect_count = stream.map(
 //                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COLLECT_COUNT))
 //                    .map(s -> Integer.parseInt(s) * 3);
-
 
             jssc.start();
             jssc.awaitTermination();
