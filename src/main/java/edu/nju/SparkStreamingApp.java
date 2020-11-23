@@ -40,17 +40,8 @@ public class SparkStreamingApp {
 
             // 剧名
             JavaDStream<String> title = stream
-                    .map(consumerRecord -> {
-                        String jsonData = consumerRecord.value();
-                        String value = "";
-                        JSONObject jsonObject = JSON.parseObject(jsonData);
-                        for (String key : jsonObject.keySet()) {
-                            if ("title".equals(key)) {
-                                value = jsonObject.getString(key);
-                            }
-                        }
-                        return value;
-                    });
+                    .map(consumerRecord -> getVal(consumerRecord, Constants.TITLE)
+                    );
 
             title.print();
 
