@@ -26,7 +26,7 @@ import java.util.*;
  * @author xuechenyang(morsuning @ gmail.com)
  * @date 2020/11/19 01:01
  */
-public class SparkStreamingApp {
+public class SparkStreamingApp implements Serializable {
 
     private final JavaSparkContext sc;
 
@@ -133,7 +133,6 @@ public class SparkStreamingApp {
 //                    .map(Integer::parseInt);
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

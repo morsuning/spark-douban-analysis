@@ -1,13 +1,14 @@
 package edu.nju.config;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.Properties;
 
 /**
  * @author xuechenyang(morsuning @ gmail.com)
  * @date 2020/11/21 22:28
  */
-public class ConfigurationManager {
+public class ConfigurationManager implements Serializable {
     //私有配置对象
     private static final Properties prop = new Properties();
 

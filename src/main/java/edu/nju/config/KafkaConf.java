@@ -3,13 +3,14 @@ package edu.nju.config;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * @author xuechenyang(morsuning @ gmail.com)
  * @date 2020/11/23 00:59
  */
-public class KafkaConf {
+public class KafkaConf implements Serializable {
 
     public static Map<String, Object> getKafkaParams() {
         Map<String, Object> kafkaParams = new HashMap<>(4);
