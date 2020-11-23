@@ -73,6 +73,8 @@ public class SparkStreamingApp implements Serializable {
                             .map(Integer::parseInt))
                     .reduce(Integer::sum);
 
+            count_comment.print();
+
             // 计算加权原始热度
             JavaDStream<Integer> awaiting = stream.map(
                     stringConsumerRecord -> getVal(stringConsumerRecord, Constants.AWAITING))
