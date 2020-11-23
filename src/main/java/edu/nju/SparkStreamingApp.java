@@ -16,11 +16,13 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 
+import java.io.Serializable;
+
 /**
  * @author xuechenyang(morsuning @ gmail.com)
  * @date 2020/11/19 01:01
  */
-public class SparkStreamingApp {
+public class SparkStreamingApp implements Serializable {
 
     SparkConf sparkConf = new SparkConf().setAppName(Constants.APP_NAME);
     JavaSparkContext sc = new JavaSparkContext(sparkConf);
