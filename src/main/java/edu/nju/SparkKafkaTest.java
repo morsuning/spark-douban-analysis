@@ -32,7 +32,7 @@ public class SparkKafkaTest {
 
     private static final Pattern SPACE = Pattern.compile(" ");
 
-    SparkConf sparkConf = new SparkConf().setAppName(Constants.APP_NAME);
+    SparkConf sparkConf = new SparkConf().setAppName(Constants.APP_NAME).setMaster(Constants.MASTER);
     JavaSparkContext sc = new JavaSparkContext(sparkConf);
 
     public void start() {
