@@ -43,7 +43,15 @@ public class SparkStreamingApp {
                     .map(new Function<ConsumerRecord<String, String>, String>() {
                              @Override
                              public String call(ConsumerRecord<String, String> consumerRecord){
-                                 return getVal(consumerRecord, Constants.TITLE);
+                                 String jsonData = consumerRecord.value();
+                                 String value = "";
+                                 JSONObject jsonObject = JSON.parseObject(jsonData);
+                                 for (String key : jsonObject.keySet()) {
+                                     if (Constants.TITLE.equals(key)) {
+                                         value = jsonObject.getString(key);
+                                     }
+                                 }
+                                 return value;
                              }
                          }
                     );
