@@ -22,9 +22,9 @@ import java.io.Serializable;
  * @author xuechenyang(morsuning @ gmail.com)
  * @date 2020/11/19 01:01
  */
-public class SparkStreamingApp implements Serializable {
+public class SparkStreamingApp {
 
-    public static final SparkConf SPARK_CONF = new SparkConf().setAppName(Constants.APP_NAME);
+    public static final SparkConf SPARK_CONF = new SparkConf().setAppName(Constants.APP_NAME).setMaster(Constants.MASTER);
     public static final JavaSparkContext JAVA_SPARK_CONTEXT = new JavaSparkContext(SPARK_CONF);
 
     public void start() {
