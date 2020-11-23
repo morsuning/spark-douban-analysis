@@ -65,7 +65,7 @@ public class SparkStreamingApp {
 //                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COUNT))
 //                            .map(Integer::parseInt))
 //                    .reduce(Integer::sum);
-//
+
 //            // 计算加权原始热度
 //            JavaDStream<Integer> awaiting = stream.map(
 //                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.AWAITING))
@@ -82,10 +82,6 @@ public class SparkStreamingApp {
 //            JavaDStream<Integer> short_comment_count = stream.map(
 //                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_COUNT))
 //                    .map(s -> Integer.parseInt(s) * 4);
-//
-//            JavaDStream<Integer> short_comment_like_count = stream.map(
-//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_LIKE_COUNT))
-//                    .map(Integer::parseInt);
 //
 //            JavaDStream<Integer> comment_count = stream.map(
 //                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COUNT))
@@ -110,6 +106,11 @@ public class SparkStreamingApp {
 
             jssc.start();
             jssc.awaitTermination();
+
+
+//            JavaDStream<Integer> short_comment_like_count = stream.map(
+//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_LIKE_COUNT))
+//                    .map(Integer::parseInt);
 
         } catch (Exception e) {
             e.printStackTrace();
