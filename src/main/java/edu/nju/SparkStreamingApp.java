@@ -42,6 +42,7 @@ public class SparkStreamingApp implements Serializable {
 
             // 剧名
             JavaDStream<String> title = stream.map(consumerRecord -> getVal(consumerRecord, Constants.TITLE));
+
             title.print();
 
             // 想看，在看，看过总数
@@ -53,16 +54,10 @@ public class SparkStreamingApp implements Serializable {
                             .map(Integer::parseInt))
                     .union(stream
                             .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SEEN))
-                            .map(Integer::parseInt));
+                            .map(Integer::parseInt))
+                    .reduce(Integer::sum);
 
-            JavaDStream<Integer> countAwaitingWatchingSeenA = countAwaitingWatchingSeen.reduce(new Function2<Integer, Integer, Integer>() {
-                @Override
-                public Integer call(Integer integer, Integer integer2){
-                    return integer + integer2;
-                }
-            });
-
-            countAwaitingWatchingSeenA.print();
+            countAwaitingWatchingSeen.print();
 
             // 短评 + 剧评总数
             JavaDStream<Integer> count_comment = stream
