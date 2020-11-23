@@ -40,7 +40,12 @@ public class SparkStreamingApp {
 
             // 剧名
             JavaDStream<String> title = stream
-                    .map(consumerRecord -> getVal(consumerRecord, Constants.TITLE)
+                    .map(new Function<ConsumerRecord<String, String>, String>() {
+                             @Override
+                             public String call(ConsumerRecord<String, String> consumerRecord){
+                                 return getVal(consumerRecord, Constants.TITLE);
+                             }
+                         }
                     );
 
             title.print();
