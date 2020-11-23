@@ -7,6 +7,7 @@ import edu.nju.config.KafkaConf;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -41,9 +42,14 @@ public class SparkStreamingApp implements Serializable {
                     ConsumerStrategies.Subscribe(KafkaConf.getTopicsSet(), KafkaConf.getKafkaParams()));
 
             // 剧名
-            JavaDStream<String> title = stream.map(consumerRecord -> getVal(consumerRecord, Constants.TITLE));
+            JavaDStream<String> title = stream.map(
+                    consumerRecord -> getVal(consumerRecord, Constants.TITLE)
+            );
 
-            title.print();
+            // 评分
+            JavaDStream<String> score = stream.map(
+                    consumerRecord -> getVal(consumerRecord, Constants.SCORE)
+            );
 
             // 想看，在看，看过总数
             JavaDStream<Integer> countAwaitingWatchingSeen = stream
@@ -57,7 +63,6 @@ public class SparkStreamingApp implements Serializable {
                             .map(Integer::parseInt))
                     .reduce(Integer::sum);
 
-            countAwaitingWatchingSeen.print();
 
             // 短评 + 剧评总数
             JavaDStream<Integer> count_comment = stream
@@ -68,7 +73,6 @@ public class SparkStreamingApp implements Serializable {
                             .map(Integer::parseInt))
                     .reduce(Integer::sum);
 
-            count_comment.print();
 
             // 计算加权原始热度
             JavaDStream<Integer> awaiting = stream.map(
@@ -107,20 +111,64 @@ public class SparkStreamingApp implements Serializable {
                     stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COLLECT_COUNT))
                     .map(s -> Integer.parseInt(s) * 3);
 
+            // 计算原始热度
+            JavaDStream<Integer> originalHeat = awaiting
+                    .union(watching)
+                    .union(seen)
+                    .union(short_comment_count)
+                    .union(comment_count)
+                    .union(comment_reply_count)
+                    .union(comment_usefulness_count)
+                    .union(comment_share_count)
+                    .union(comment_collect_count)
+                    .reduce(Integer::sum);
 
+            originalHeat.print();
+
+            // 计算衰减热度
+            JavaDStream<Integer> decayHeat = stream
+                    .map(consumerRecord -> getVal(consumerRecord, Constants.TIME))
+                    .map(
+                            (Function<String, Integer>) s -> {
+                                int time = Integer.parseInt(s);
+                                int r = 8;
+                                // TODO 当前时间减去第一次收集信息的时间
+                                int t = 10, tLast = 20;
+                                double index = (- r * ( t - tLast)) / (864000 * 1.0);
+                                return (int)Math.pow(Math.E, index);
+                            }
+                    );
+
+            // 热度
+            JavaDStream<Integer> heat = originalHeat
+                    .union(decayHeat)
+                    .reduce((integer, integer2) -> integer * integer2);
+
+            // TODO 当时变化量热度
+            JavaDStream<Integer> deltaHeat = null;
+
+            // 总热度
+            JavaDStream<Integer> totalHeat = heat.union(deltaHeat).reduce(Integer::sum);
+
+            // TODO 存入 HBase 一：展示所需数据
+
+            // TODO 存入 HBase 二：上次数据
+
+            // TODO 查最新数据，利用这次数据计算
 
             jssc.start();
             jssc.awaitTermination();
-
-
-//            JavaDStream<Integer> short_comment_like_count = stream.map(
-//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_LIKE_COUNT))
-//                    .map(Integer::parseInt);
 
         } catch (Exception e) {
         }
     }
 
+    /**
+     * 解析 JSON 数据
+     * @param consumerRecord Kafka 数据对象
+     * @param s 提取的条目
+     * @return 提取的值
+     */
     private String getVal(ConsumerRecord<String, String> consumerRecord, String s) {
         String jsonData = consumerRecord.value();
         String value = "";

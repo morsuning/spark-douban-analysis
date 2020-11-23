@@ -18,7 +18,11 @@ public interface Constants extends Serializable {
     String KAFKA_TOPICS = "kafka.topics";
 
 
+    String TIME = "time";
+
     String TITLE = "title";
+
+    String SCORE = "score";
 
     String AWAITING = "awaiting";
 

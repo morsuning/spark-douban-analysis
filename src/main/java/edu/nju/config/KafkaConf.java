@@ -25,6 +25,31 @@ public class KafkaConf implements Serializable {
 
 //            Map<TopicPartition, Long> offset = new HashMap<>();
 //            offset.put(new TopicPartition("", 0), 0L);
+
+
+//        /** 1、这种订阅会读取所有的partition数据 但是可以指定某些partition的offset */
+//        val stream1: InputDStream[ConsumerRecord[String, String]] = KafkaUtils.createDirectStream[String, String](
+//                streamingContext,
+//                PreferConsistent,
+//                Subscribe[String, String](topics, kafkaParams, offsets)
+//        )
+//
+//        /** 2、这种订阅会读取所有的partition数据 */
+//        val stream2: InputDStream[ConsumerRecord[String, String]] = KafkaUtils.createDirectStream[String, String](
+//                streamingContext,
+//                PreferConsistent,
+//                Subscribe[String, String](topics, kafkaParams)
+//        )
+//
+//        /**
+//         * 3、这种订阅指定策略会读取指定的的partition数据
+//         *    和指定的offset开始位置
+//         */
+//        val stream: InputDStream[ConsumerRecord[String, String]] = KafkaUtils.createDirectStream[String, String](
+//                streamingContext,
+//                PreferConsistent,
+//                ConsumerStrategies.Assign[String, String](topicPartition, kafkaParams, offsets)
+//        )
         return kafkaParams;
     }
 
