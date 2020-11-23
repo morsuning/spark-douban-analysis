@@ -2,15 +2,11 @@ package edu.nju;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import edu.nju.config.ConfigurationManager;
 import edu.nju.config.Constants;
 import edu.nju.config.KafkaConf;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -47,17 +43,19 @@ public class SparkStreamingApp implements Serializable {
             JavaDStream<String> title = stream.map(consumerRecord -> getVal(consumerRecord, Constants.TITLE));
             title.print();
 
-//            // 想看，在看，看过总数
-//            JavaDStream<Integer> count_awaiting_watching_seen = stream
-//                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.AWAITING))
-//                    .map(Integer::parseInt)
-//                    .union(stream
-//                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.WATCHING))
-//                            .map(Integer::parseInt))
-//                    .union(stream
-//                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SEEN))
-//                            .map(Integer::parseInt)
-//                            .reduce(Integer::sum));
+            // 想看，在看，看过总数
+            JavaDStream<Integer> count_awaiting_watching_seen = stream
+                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.AWAITING))
+                    .map(Integer::parseInt)
+                    .union(stream
+                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.WATCHING))
+                            .map(Integer::parseInt))
+                    .union(stream
+                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SEEN))
+                            .map(Integer::parseInt)
+                            .reduce(Integer::sum));
+
+            count_awaiting_watching_seen.print();
 //
 //            // 短评 + 剧评总数
 //            JavaDStream<Integer> count_comment = stream
