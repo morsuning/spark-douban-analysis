@@ -28,13 +28,16 @@ import java.util.*;
  */
 public class SparkStreamingApp {
 
-    private SparkConf SPARK_CONF = new SparkConf().setAppName(Constants.APP_NAME);
-    private JavaSparkContext JAVA_SPARK_CONTEXT = new JavaSparkContext(SPARK_CONF);
+    private final JavaSparkContext sc;
+
+    SparkStreamingApp() {
+        SparkConf sparkConf = new SparkConf().setAppName(Constants.APP_NAME);
+        this.sc = new JavaSparkContext(sparkConf);
+        sc.setLogLevel("WARN");
+    }
 
     public void start() {
-        JAVA_SPARK_CONTEXT.setLogLevel("WARN");
-
-        try (JavaStreamingContext jssc = new JavaStreamingContext(this.JAVA_SPARK_CONTEXT, Durations.seconds(10))) {
+        try (JavaStreamingContext jssc = new JavaStreamingContext(this.sc, Durations.seconds(10))) {
 
             jssc.checkpoint("hdfs:///spark/streaming_checkpoint");
 
