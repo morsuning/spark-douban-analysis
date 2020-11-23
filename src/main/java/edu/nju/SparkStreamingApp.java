@@ -40,82 +40,81 @@ public class SparkStreamingApp {
 
             // 剧名
             JavaDStream<String> title = stream
-                    .map(new Function<ConsumerRecord<String, String>, String>() {
-                        @Override
-                        public String call(ConsumerRecord<String, String> consumerRecord) {
-                            String jsonData = consumerRecord.value();
-                            String value = "";
-                            JSONObject jsonObject = JSON.parseObject(jsonData);
-                            for (String key : jsonObject.keySet()) {
-                                if ("title".equals(key)) {
-                                    value = jsonObject.getString(key);
-                                }
+                    .map(consumerRecord -> {
+                        String jsonData = consumerRecord.value();
+                        String value = "";
+                        JSONObject jsonObject = JSON.parseObject(jsonData);
+                        for (String key : jsonObject.keySet()) {
+                            if ("title".equals(key)) {
+                                value = jsonObject.getString(key);
                             }
-                            return value;
                         }
+                        return value;
                     });
 
-            // 想看，在看，看过总数
-            JavaDStream<Integer> count_awaiting_warching_seen = stream
-                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.AWAITING))
-                    .map(Integer::parseInt)
-                    .union(stream
-                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.WATCHING))
-                            .map(Integer::parseInt))
-                    .union(stream
-                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SEEN))
-                            .map(Integer::parseInt)
-                            .reduce(Integer::sum));
+            title.print();
 
-            // 短评 + 剧评总数
-            JavaDStream<Integer> count_comment = stream
-                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_COUNT))
-                    .map(Integer::parseInt)
-                    .union(stream
-                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COUNT))
-                            .map(Integer::parseInt))
-                    .reduce(Integer::sum);
-
-            // 计算加权原始热度
-            JavaDStream<Integer> awaiting = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.AWAITING))
-                    .map(Integer::parseInt);
-
-            JavaDStream<Integer> watching = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.WATCHING))
-                    .map(s -> Integer.parseInt(s) * 2);
-
-            JavaDStream<Integer> seen = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SEEN))
-                    .map(s -> Integer.parseInt(s) * 3);
-
-            JavaDStream<Integer> short_comment_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_COUNT))
-                    .map(s -> Integer.parseInt(s) * 4);
-
-            JavaDStream<Integer> short_comment_like_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_LIKE_COUNT))
-                    .map(Integer::parseInt);
-
-            JavaDStream<Integer> comment_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COUNT))
-                    .map(s -> Integer.parseInt(s) * 4);
-
-            JavaDStream<Integer> comment_reply_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_REPLY_COUNT))
-                    .map(s -> Integer.parseInt(s) * 3);
-
-            JavaDStream<Integer> comment_usefulness_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_USEFULNESS_COUNT))
-                    .map(Integer::parseInt);
-
-            JavaDStream<Integer> comment_share_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_SHARE_COUNT))
-                    .map(s -> Integer.parseInt(s) * 2);
-
-            JavaDStream<Integer> comment_collect_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COLLECT_COUNT))
-                    .map(s -> Integer.parseInt(s) * 3);
+//            // 想看，在看，看过总数
+//            JavaDStream<Integer> count_awaiting_warching_seen = stream
+//                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.AWAITING))
+//                    .map(Integer::parseInt)
+//                    .union(stream
+//                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.WATCHING))
+//                            .map(Integer::parseInt))
+//                    .union(stream
+//                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SEEN))
+//                            .map(Integer::parseInt)
+//                            .reduce(Integer::sum));
+//
+//            // 短评 + 剧评总数
+//            JavaDStream<Integer> count_comment = stream
+//                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_COUNT))
+//                    .map(Integer::parseInt)
+//                    .union(stream
+//                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COUNT))
+//                            .map(Integer::parseInt))
+//                    .reduce(Integer::sum);
+//
+//            // 计算加权原始热度
+//            JavaDStream<Integer> awaiting = stream.map(
+//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.AWAITING))
+//                    .map(Integer::parseInt);
+//
+//            JavaDStream<Integer> watching = stream.map(
+//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.WATCHING))
+//                    .map(s -> Integer.parseInt(s) * 2);
+//
+//            JavaDStream<Integer> seen = stream.map(
+//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SEEN))
+//                    .map(s -> Integer.parseInt(s) * 3);
+//
+//            JavaDStream<Integer> short_comment_count = stream.map(
+//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_COUNT))
+//                    .map(s -> Integer.parseInt(s) * 4);
+//
+//            JavaDStream<Integer> short_comment_like_count = stream.map(
+//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_LIKE_COUNT))
+//                    .map(Integer::parseInt);
+//
+//            JavaDStream<Integer> comment_count = stream.map(
+//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COUNT))
+//                    .map(s -> Integer.parseInt(s) * 4);
+//
+//            JavaDStream<Integer> comment_reply_count = stream.map(
+//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_REPLY_COUNT))
+//                    .map(s -> Integer.parseInt(s) * 3);
+//
+//            JavaDStream<Integer> comment_usefulness_count = stream.map(
+//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_USEFULNESS_COUNT))
+//                    .map(Integer::parseInt);
+//
+//            JavaDStream<Integer> comment_share_count = stream.map(
+//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_SHARE_COUNT))
+//                    .map(s -> Integer.parseInt(s) * 2);
+//
+//            JavaDStream<Integer> comment_collect_count = stream.map(
+//                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COLLECT_COUNT))
+//                    .map(s -> Integer.parseInt(s) * 3);
 
 
             jssc.start();
