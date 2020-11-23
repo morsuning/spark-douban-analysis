@@ -37,29 +37,14 @@ public class SparkStreamingApp implements Serializable {
 
             jssc.checkpoint("hdfs:///spark/streaming_checkpoint");
 
-            Set<String> topicSet = new HashSet<>(
-                    Arrays.asList(ConfigurationManager.getProperty(Constants.KAFKA_TOPICS).split(",")));
-
-            Map<String, Object> kafkaParams = new HashMap<>(4);
-            kafkaParams.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ConfigurationManager.getProperty(Constants.KAFKA_BOOTSTRAP_SERVERS));
-            kafkaParams.put(ConsumerConfig.GROUP_ID_CONFIG, ConfigurationManager.getProperty(Constants.GROUP_ID));
-            kafkaParams.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-            kafkaParams.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-
             JavaInputDStream<ConsumerRecord<String, String>> stream = KafkaUtils.createDirectStream(
                     jssc,
                     LocationStrategies.PreferConsistent(),
                     // 可以有第三个参数 offset
-                    ConsumerStrategies.Subscribe(topicSet, kafkaParams));
+                    ConsumerStrategies.Subscribe(KafkaConf.getTopicsSet(), KafkaConf.getKafkaParams()));
 
             // 剧名
-            JavaDStream<String> title = stream.map(new Function<ConsumerRecord<String, String>, String>() {
-                @Override
-                public String call(ConsumerRecord<String, String> consumerRecord){
-                    return consumerRecord.value();
-                }
-            });
-
+            JavaDStream<String> title = stream.map(consumerRecord -> getVal(consumerRecord, Constants.TITLE));
             title.print();
 
 //            // 想看，在看，看过总数
