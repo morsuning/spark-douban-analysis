@@ -2,13 +2,18 @@ package edu.nju;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import edu.nju.config.ConfigManager;
 import edu.nju.config.Constants;
+import edu.nju.config.HbaseConf;
 import edu.nju.config.KafkaConf;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -18,7 +23,9 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author xuechenyang(morsuning @ gmail.com)
@@ -26,6 +33,10 @@ import java.util.*;
  */
 public class SparkStreamingApp implements Serializable {
 
+    public static void main(String[] args) {
+        SparkStreamingApp sparkStreamingApp = new SparkStreamingApp();
+        sparkStreamingApp.start();
+    }
 
     public void start() {
         SparkConf sparkConf = new SparkConf().setAppName(Constants.APP_NAME);
@@ -41,152 +52,133 @@ public class SparkStreamingApp implements Serializable {
                     // 可以有第三个参数 offset
                     ConsumerStrategies.Subscribe(KafkaConf.getTopicsSet(), KafkaConf.getKafkaParams()));
 
-            // 剧名
-            JavaDStream<String> title = stream.map(
-                    consumerRecord -> getVal(consumerRecord, Constants.TITLE)
-            );
-
-            // 评分
-            JavaDStream<String> score = stream.map(
-                    consumerRecord -> getVal(consumerRecord, Constants.SCORE)
-            );
-
-            // 想看，在看，看过总数
-            JavaDStream<Integer> countAwaitingWatchingSeen = stream
-                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.AWAITING))
-                    .map(Integer::parseInt)
-                    .union(stream
-                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.WATCHING))
-                            .map(Integer::parseInt))
-                    .union(stream
-                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SEEN))
-                            .map(Integer::parseInt))
-                    .reduce(Integer::sum);
-
-
             // 短评 + 剧评总数
-            JavaDStream<Integer> count_comment = stream
+            JavaDStream<Integer> totalComment = stream
                     .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_COUNT))
                     .map(Integer::parseInt)
                     .union(stream
                             .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COUNT))
                             .map(Integer::parseInt))
-                    .reduce(Integer::sum);
-
+                    .reduce(Integer::sum).cache();
 
             // 计算加权原始热度
-            JavaDStream<Integer> awaiting = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.AWAITING))
-                    .map(Integer::parseInt);
-
-            JavaDStream<Integer> watching = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.WATCHING))
-                    .map(s -> Integer.parseInt(s) * 2);
-
-            JavaDStream<Integer> seen = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SEEN))
-                    .map(s -> Integer.parseInt(s) * 3);
-
-            JavaDStream<Integer> short_comment_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_COUNT))
-                    .map(s -> Integer.parseInt(s) * 4);
-
-            JavaDStream<Integer> comment_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COUNT))
-                    .map(s -> Integer.parseInt(s) * 4);
-
-            JavaDStream<Integer> comment_reply_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_REPLY_COUNT))
-                    .map(s -> Integer.parseInt(s) * 3);
-
-            JavaDStream<Integer> comment_usefulness_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_USEFULNESS_COUNT))
-                    .map(Integer::parseInt);
-
-            JavaDStream<Integer> comment_share_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_SHARE_COUNT))
-                    .map(s -> Integer.parseInt(s) * 2);
-
-            JavaDStream<Integer> comment_collect_count = stream.map(
-                    stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COLLECT_COUNT))
-                    .map(s -> Integer.parseInt(s) * 3);
-
-            // 计算原始热度
-            JavaDStream<Integer> originalHeat = awaiting
-                    .union(watching)
-                    .union(seen)
-                    .union(short_comment_count)
-                    .union(comment_count)
-                    .union(comment_reply_count)
-                    .union(comment_usefulness_count)
-                    .union(comment_share_count)
-                    .union(comment_collect_count)
-                    .reduce(Integer::sum);
-
-            originalHeat.print();
+            JavaDStream<Integer> originalHeat = stream.map(consumerRecord -> {
+                String currentID = getVal(consumerRecord, Constants.ID);
+                int awaiting = Integer.parseInt(getVal(consumerRecord, Constants.AWAITING));
+                int watching = 2 * Integer.parseInt(getVal(consumerRecord, Constants.WATCHING));
+                int seen = 3 * Integer.parseInt(getVal(consumerRecord, Constants.SEEN));
+                int countShortComment = 4 * Integer.parseInt(getVal(consumerRecord, Constants.SHORT_COMMENT_COUNT));
+                int countComment = 4 * Integer.parseInt(getVal(consumerRecord, Constants.COMMENT_COUNT));
+                int countReplyComment = 3 * Integer.parseInt(getVal(consumerRecord, Constants.COMMENT_REPLY_COUNT));
+                int countUsefulnessComment = Integer.parseInt(getVal(consumerRecord, Constants.COMMENT_USEFULNESS_COUNT));
+                int countShareComment = 2 * Integer.parseInt(getVal(consumerRecord, Constants.COMMENT_SHARE_COUNT));
+                int countCollectComment = 3 * Integer.parseInt(getVal(consumerRecord, Constants.COMMENT_COLLECT_COUNT));
+                int res = awaiting + watching + seen + countShortComment + countComment
+                        + countReplyComment + countUsefulnessComment + countShareComment
+                        + countCollectComment;
+                if (idHeatMap.containsKey(currentID)) {
+                    idDeltaHeatMap.put(currentID, res - idHeatMap.get(currentID));
+                }
+                idHeatMap.put(currentID, res);
+                return res;
+            });
 
             // 计算衰减热度
             JavaDStream<Integer> decayHeat = stream
-                    .map(consumerRecord -> getVal(consumerRecord, Constants.TIME))
-                    .map(
-                            (Function<String, Integer>) s -> {
-                                int time = Integer.parseInt(s);
-                                int r = 8;
-                                // TODO 当前时间减去第一次收集信息的时间
-                                int t = 10, tLast = 20;
-                                double index = (- r * ( t - tLast)) / (864000 * 1.0);
-                                return (int)Math.pow(Math.E, index);
-                            }
-                    );
+                    .map(consumerRecord -> {
+                        String currentID = getVal(consumerRecord, Constants.ID);
+                        String currentTime = getVal(consumerRecord, Constants.TIME);
+                        if (!idTimeMap.containsKey(currentID)) {
+                            idTimeMap.put(currentID, Integer.parseInt(currentTime));
+                            return 1;
+                        } else {
+                            // TODO 调整衰减因子
+                            // 衰减因子
+                            int r = 8;
+                            int tLast = idTimeMap.get(currentID);
+                            double index = (-r * (Integer.parseInt(currentTime) - tLast)) / (864000 * 1.0);
+                            return (int) Math.pow(Math.E, index);
+                        }
+                    });
 
             // 热度
             JavaDStream<Integer> heat = originalHeat
                     .union(decayHeat)
                     .reduce((integer, integer2) -> integer * integer2);
 
-            // TODO 当时变化量热度
-            JavaDStream<Integer> deltaHeat = null;
+            // 当时变化量热度
+            JavaDStream<Integer> deltaHeat = stream.map(consumerRecord -> {
+                String deltaHeatId = getVal(consumerRecord, Constants.ID);
+                int res = 0;
+                if (idDeltaHeatMap.containsKey(deltaHeatId)) {
+                    res = idDeltaHeatMap.get(deltaHeatId);
+                }
+                return res;
+            });
 
             // 总热度
-            JavaDStream<Integer> totalHeat = heat.union(deltaHeat).reduce(Integer::sum);
+            JavaDStream<Integer> totalHeat = heat.union(deltaHeat).reduce(Integer::sum).cache();
 
-            // TODO 存入 HBase 一：展示所需数据
+            stream.foreachRDD((consumerRecordJavaRDD, time) ->
+                    consumerRecordJavaRDD.foreach(consumerRecord -> {
+                        String id = getVal(consumerRecord, Constants.ID);
+                        String title = getVal(consumerRecord, Constants.TITLE);
+                        String score = getVal(consumerRecord, Constants.SCORE);
+                        String awaiting = getVal(consumerRecord, Constants.AWAITING);
+                        String watching = getVal(consumerRecord, Constants.WATCHING);
+                        String seen = getVal(consumerRecord, Constants.SEEN);
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put(Constants.TITLE, title);
+                        jsonObject.put(Constants.SCORE, score);
+                        jsonObject.put(Constants.AWAITING, awaiting);
+                        jsonObject.put(Constants.WATCHING, watching);
+                        jsonObject.put(Constants.SEEN, seen);
+                        // TODO 测试 结果也许不一致
+                        jsonObject.put(Constants.COMMENT_COUNT, totalComment.toString());
+                        jsonObject.put(Constants.TOTAL_HEAT, totalHeat.toString());
+                        Connection hbaseConn = HbaseConf.getHbaseConn();
+                        Table table = hbaseConn.getTable(TableName.valueOf(ConfigManager.getProperty(Constants.TABLE_NAME)));
+                        Put put = new Put(Bytes.toBytes(id));
+                        put.addColumn(Bytes.toBytes("record"), Bytes.toBytes("json"), Bytes.toBytes(jsonObject.toJSONString()));
+                        table.put(put);
+                        table.close();
+                    }));
 
-            // TODO 存入 HBase 二：上次数据
+            JavaDStream<String> message = stream.map(consumerRecord -> new Date().toString() + "A record has been added to the table \"douban_anime_statis_simple\"");
 
-            // TODO 查最新数据，利用这次数据计算
+            message.print();
 
             jssc.start();
             jssc.awaitTermination();
 
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     /**
-     * 解析 JSON 数据
-     * @param consumerRecord Kafka 数据对象
-     * @param s 提取的条目
-     * @return 提取的值
+     * 记录计算初始热度的时间
      */
-    private String getVal(ConsumerRecord<String, String> consumerRecord, String s) {
-        String jsonData = consumerRecord.value();
-        String value = "";
-        JSONObject jsonObject = JSON.parseObject(jsonData);
-        for (String key : jsonObject.keySet()) {
-            if (s.equals(key)) {
-                value = jsonObject.getString(key);
-            }
-        }
-        return value;
-    }
+    private Map<String, Integer> idTimeMap = new HashMap<>();
 
-    private void writeToHbase() {
+    /**
+     * 记录上一次计算出来的原始热度
+     */
+    private Map<String, Integer> idHeatMap = new HashMap<>();
 
-    }
+    /**
+     * 记录本次的当时变化量热度
+     */
+    private Map<String, Integer> idDeltaHeatMap = new HashMap<>();
 
-    public static void main(String[] args) {
-        SparkStreamingApp sparkStreamingApp = new SparkStreamingApp();
-        sparkStreamingApp.start();
+    /**
+     * 根据 Key 提取 JSON String 的 Value
+     *
+     * @param consumerRecord Kafka 数据对象
+     * @param key            Key
+     * @return Value
+     */
+    private String getVal(ConsumerRecord<String, String> consumerRecord, String key) {
+        return JSON.parseObject(consumerRecord.value()).getString(key);
     }
 }

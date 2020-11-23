@@ -17,8 +17,16 @@ public interface Constants extends Serializable {
 
     String KAFKA_TOPICS = "kafka.topics";
 
+    String TABLE_NAME = "table.name";
+
+    String HBASE_ZOOKEEPER_QUORUM = "hbase.zookeeper.quorum";
+
+    String HBASE_ZOOKEEPER_PROPERTY_CLIENTPORT = "hbase.zookeeper.property.clientPort";
+
 
     String TIME = "time";
+
+    String ID = "id";
 
     String TITLE = "title";
 
@@ -42,5 +50,7 @@ public interface Constants extends Serializable {
 
     String COMMENT_SHARE_COUNT = "comment_share_count";
 
-    String COMMENT_COLLECT_COUNT ="comment_collect_count";
+    String COMMENT_COLLECT_COUNT = "comment_collect_count";
+
+    String TOTAL_HEAT = "total_heat";
 }

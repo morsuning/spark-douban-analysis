@@ -8,21 +8,20 @@ import java.util.Properties;
  * @author xuechenyang(morsuning @ gmail.com)
  * @date 2020/11/21 22:28
  */
-public class ConfigurationManager implements Serializable {
-    //私有配置对象
-    private static final Properties prop = new Properties();
-
+public class ConfigManager implements Serializable {
     /**
-     * 静态代码块
+     * 私有配置对象
      */
+    private static final Properties PROP = new Properties();
+
     static {
         try {
             //获取配置文件输入流
-            InputStream in = ConfigurationManager.class
+            InputStream in = ConfigManager.class
                     .getClassLoader().getResourceAsStream("demo.properties");
 
             //加载配置对象
-            prop.load(in);
+            PROP.load(in);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -35,7 +34,7 @@ public class ConfigurationManager implements Serializable {
      * @return value
      */
     public static String getProperty(String key) {
-        return prop.getProperty(key);
+        return PROP.getProperty(key);
     }
 
     /**

@@ -28,5 +28,13 @@ public class JSONTest {
             String value = jsonObject.getString(key);
             System.out.println(key + " - " + value);
         }
+
+        JSONObject json = new JSONObject();
+        json.put("hello", 1);
+        json.put("world", 2);
+        json.put("again", "Hello world!");
+        System.out.println(json.toJSONString());
+
+        System.out.println(JSON.parseObject(jsonData).getString("title"));
     }
 }
