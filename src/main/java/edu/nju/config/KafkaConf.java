@@ -18,6 +18,7 @@ public class KafkaConf implements Serializable {
         kafkaParams.put(ConsumerConfig.GROUP_ID_CONFIG, ConfigManager.getProperty(Constants.GROUP_ID));
         kafkaParams.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         kafkaParams.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        return kafkaParams;
         //指定从latest(最新,其他版本的是largest这里不行)还是smallest(最早)处开始读取数据
 //            kafkaParams.put("auto.offset.reset", "latest");
         //如果true,consumer定期地往zookeeper写入每个分区的offset
@@ -50,7 +51,6 @@ public class KafkaConf implements Serializable {
 //                PreferConsistent,
 //                ConsumerStrategies.Assign[String, String](topicPartition, kafkaParams, offsets)
 //        )
-        return kafkaParams;
     }
 
     public static Set<String> getTopicsSet() {

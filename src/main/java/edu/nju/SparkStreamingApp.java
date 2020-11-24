@@ -86,16 +86,15 @@ public class SparkStreamingApp implements Serializable {
             // 计算衰减热度
             JavaDStream<Integer> decayHeat = stream
                     .map(consumerRecord -> {
-                        String currentID = getVal(consumerRecord, Constants.ID);
+                        String currentId = getVal(consumerRecord, Constants.ID);
                         String currentTime = getVal(consumerRecord, Constants.TIME);
-                        if (!idTimeMap.containsKey(currentID)) {
-                            idTimeMap.put(currentID, Integer.parseInt(currentTime));
+                        if (!idTimeMap.containsKey(currentId)) {
+                            idTimeMap.put(currentId, Integer.parseInt(currentTime));
                             return 1;
                         } else {
-                            // TODO 调整衰减因子
                             // 衰减因子
                             int r = 8;
-                            int tLast = idTimeMap.get(currentID);
+                            int tLast = idTimeMap.get(currentId);
                             double index = (-r * (Integer.parseInt(currentTime) - tLast)) / (864000 * 1.0);
                             return (int) Math.pow(Math.E, index);
                         }
@@ -119,8 +118,9 @@ public class SparkStreamingApp implements Serializable {
             // 总热度
             JavaDStream<Integer> totalHeat = heat.union(deltaHeat).reduce(Integer::sum).cache();
 
-            stream.foreachRDD((consumerRecordJavaRDD, time) ->
-                    consumerRecordJavaRDD.foreach(consumerRecord -> {
+            // 保存数据
+            stream.foreachRDD((consumerRecordJavaRdd, time) ->
+                    consumerRecordJavaRdd.foreach(consumerRecord -> {
                         String id = getVal(consumerRecord, Constants.ID);
                         String title = getVal(consumerRecord, Constants.TITLE);
                         String score = getVal(consumerRecord, Constants.SCORE);
@@ -145,7 +145,6 @@ public class SparkStreamingApp implements Serializable {
                     }));
 
             JavaDStream<String> message = stream.map(consumerRecord -> new Date().toString() + "A record has been added to the table \"douban_anime_statis_simple\"");
-
             message.print();
 
             jssc.start();
