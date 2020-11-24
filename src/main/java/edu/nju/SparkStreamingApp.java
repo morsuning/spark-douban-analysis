@@ -158,17 +158,18 @@ public class SparkStreamingApp implements Serializable {
     /**
      * 记录计算初始热度的时间
      */
-    private Map<String, Integer> idTimeMap = new HashMap<>();
+
+    transient private Map<String, Integer> idTimeMap = new HashMap<>();
 
     /**
      * 记录上一次计算出来的原始热度
      */
-    private Map<String, Integer> idHeatMap = new HashMap<>();
+    transient private Map<String, Integer> idHeatMap = new HashMap<>();
 
     /**
      * 记录本次的当时变化量热度
      */
-    private Map<String, Integer> idDeltaHeatMap = new HashMap<>();
+    transient private Map<String, Integer> idDeltaHeatMap = new HashMap<>();
 
     /**
      * 根据 Key 提取 JSON String 的 Value
