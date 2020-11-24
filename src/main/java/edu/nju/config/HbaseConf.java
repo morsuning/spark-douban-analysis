@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 /**
- * @author xuechenyang(morsuning @ gmail.com)
+ * @author xuechenyang(morsuning@gmail.com)
  * @date 2020/11/23 01:08
  */
 public class HbaseConf implements Serializable {
@@ -20,7 +20,6 @@ public class HbaseConf implements Serializable {
                 ConfigManager.getProperty(Constants.HBASE_ZOOKEEPER_QUORUM));
         conf.set("hbase.zookeeper.property.clientPort",
                 ConfigManager.getProperty(Constants.HBASE_ZOOKEEPER_PROPERTY_CLIENTPORT));
-//        conf.set("hbase.master", "namenode:60000");
         return ConnectionFactory.createConnection(conf);
     }
 }

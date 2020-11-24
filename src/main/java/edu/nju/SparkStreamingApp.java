@@ -132,15 +132,16 @@ public class SparkStreamingApp implements Serializable {
                         jsonObject.put(Constants.AWAITING, awaiting);
                         jsonObject.put(Constants.WATCHING, watching);
                         jsonObject.put(Constants.SEEN, seen);
-                        // TODO 测试 结果也许不一致
                         jsonObject.put(Constants.COMMENT_COUNT, totalComment.toString());
                         jsonObject.put(Constants.TOTAL_HEAT, totalHeat.toString());
                         Connection hbaseConn = HbaseConf.getHbaseConn();
-                        Table table = hbaseConn.getTable(TableName.valueOf(ConfigManager.getProperty(Constants.TABLE_NAME)));
-                        Put put = new Put(Bytes.toBytes(id));
-                        put.addColumn(Bytes.toBytes("record"), Bytes.toBytes("json"), Bytes.toBytes(jsonObject.toJSONString()));
-                        table.put(put);
-                        table.close();
+                        try (Table table = hbaseConn.getTable(TableName.valueOf(ConfigManager.getProperty(Constants.TABLE_NAME)))) {
+                            Put put = new Put(Bytes.toBytes(id));
+                            put.addColumn(Bytes.toBytes("record"), Bytes.toBytes("json"), Bytes.toBytes(jsonObject.toJSONString()));
+                            table.put(put);
+                        } catch (Exception e) {
+
+                        }
                     }));
 
             JavaDStream<String> message = stream.map(consumerRecord -> new Date().toString() + "A record has been added to the table \"douban_anime_statis_simple\"");
