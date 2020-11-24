@@ -42,22 +42,21 @@ public class SparkStreamingApp implements Serializable {
         SparkConf sparkConf = new SparkConf().setAppName(Constants.APP_NAME);
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
         sc.setLogLevel("WARN");
-        try (JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.seconds(10))) {
+        try (JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.minutes(60))) {
 
             jssc.checkpoint("hdfs:///spark/streaming_checkpoint");
 
             JavaInputDStream<ConsumerRecord<String, String>> stream = KafkaUtils.createDirectStream(
                     jssc,
                     LocationStrategies.PreferConsistent(),
-                    // 可以有第三个参数 offset
                     ConsumerStrategies.Subscribe(KafkaConf.getTopicsSet(), KafkaConf.getKafkaParams()));
 
             // 短评 + 剧评总数
             JavaDStream<Integer> totalComment = stream
-                    .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.SHORT_COMMENT_COUNT))
+                    .map(consumerRecord -> getVal(consumerRecord, Constants.SHORT_COMMENT_COUNT))
                     .map(Integer::parseInt)
                     .union(stream
-                            .map(stringConsumerRecord -> getVal(stringConsumerRecord, Constants.COMMENT_COUNT))
+                            .map(consumerRecord -> getVal(consumerRecord, Constants.COMMENT_COUNT))
                             .map(Integer::parseInt))
                     .reduce(Integer::sum).cache();
 
@@ -83,7 +82,7 @@ public class SparkStreamingApp implements Serializable {
                 return res;
             });
 
-            // 计算衰减热度
+            // 计算衰减指数
             JavaDStream<Integer> decayHeat = stream
                     .map(consumerRecord -> {
                         String currentId = getVal(consumerRecord, Constants.ID);
@@ -105,7 +104,7 @@ public class SparkStreamingApp implements Serializable {
                     .union(decayHeat)
                     .reduce((integer, integer2) -> integer * integer2);
 
-            // 当时变化量热度
+            // 变化量热度
             JavaDStream<Integer> deltaHeat = stream.map(consumerRecord -> {
                 String deltaHeatId = getVal(consumerRecord, Constants.ID);
                 int res = 0;
