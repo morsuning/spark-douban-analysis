@@ -24,6 +24,10 @@ public class SparkKafkaTest implements Serializable {
     SparkConf sparkConf = new SparkConf().setAppName(Constants.APP_NAME).setMaster(Constants.MASTER);
     JavaSparkContext sc = new JavaSparkContext(sparkConf);
 
+    public void test() {
+
+    }
+
     public void start() {
         sc.setLogLevel("WARN");
 
